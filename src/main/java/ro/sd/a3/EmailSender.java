@@ -1,6 +1,8 @@
 package ro.sd.a3;
 
 
+import org.springframework.stereotype.Repository;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -13,10 +15,10 @@ import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
 
-
+@Repository
 public class EmailSender {
 
-    public void sendConfirmationEmail(String toAddress){
+    static public void sendConfirmationEmail(String toAddress){
 
         String fromAddress = "confirmation@randevular.com";
 
@@ -59,7 +61,7 @@ public class EmailSender {
         }
     }
 
-    private String generateStringFromTemplate(){
+    static private String generateStringFromTemplate(){
         StringBuilder contentBuilder = new StringBuilder();
         try {
             BufferedReader in = new BufferedReader(new FileReader("src/main/resources/static/emailTemplate.html"));
