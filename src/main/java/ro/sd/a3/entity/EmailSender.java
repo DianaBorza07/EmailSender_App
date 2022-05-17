@@ -1,24 +1,24 @@
-package ro.sd.a3;
+package ro.sd.a3.entity;
 
 
 import org.springframework.stereotype.Repository;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Properties;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 
 @Repository
 public class EmailSender {
 
-    static public void sendConfirmationEmail(String toAddress){
+    static public void sendConfirmationEmail(String toAddress,int option, PayloadDTO payloadDTO){
 
         String fromAddress = "confirmation@randevular.com";
 
@@ -48,10 +48,16 @@ public class EmailSender {
             message.setRecipients(Message.RecipientType.TO,
                     InternetAddress.parse(toAddress));
 
-            message.setSubject("Registration Confirmation");
 
-            message.setContent(generateStringFromTemplate(),"text/html; charset=utf-8");
 
+            if(option == 1) {
+                message.setSubject("Registration Confirmation");
+                message.setContent(generateWelcomeMessage(), "text/html; charset=utf-8");
+            }
+            if( option == 2) {
+                message.setSubject("Appointment Confirmation");
+                message.setContent(generateAppointmentMessage(payloadDTO), "text/html; charset=utf-8");
+            }
             Transport.send(message);
 
             System.out.println("Message sent successfully!");
@@ -61,7 +67,7 @@ public class EmailSender {
         }
     }
 
-    static private String generateStringFromTemplate(){
+    static private String generateWelcomeMessage(){
         StringBuilder contentBuilder = new StringBuilder();
         try {
             BufferedReader in = new BufferedReader(new FileReader("src/main/resources/static/emailTemplate.html"));
@@ -76,38 +82,27 @@ public class EmailSender {
         return content;
     }
 
-    public void sendEmailTest(){
-        String recipient = "dianaborza31@gmail.com";
-
-        String sender = "confirmation@randevular.com";
-
-        String host = "127.0.0.1";
-
-        Properties properties = System.getProperties();
-        properties.put("mail.smtp.host", host);
-
-        Session session = Session.getDefaultInstance(properties);
-
-        try
-        {
-            MimeMessage message = new MimeMessage(session);
-
-            message.setFrom(new InternetAddress(sender));
-
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
-
-            message.setSubject("Registration Confirmation");
-
-            message.setContent(generateStringFromTemplate(),"text/html; charset=utf-8");
-
-            Transport.send(message);
-
-            System.out.println("Message sent successfully!");
+    static private String generateAppointmentMessage(PayloadDTO payloadDTO){
+        StringBuilder contentBuilder = new StringBuilder();
+        try {
+            BufferedReader in = new BufferedReader(new FileReader("src/main/resources/static/confirmationTemplate.html"));
+            String str;
+            while ((str = in.readLine()) != null) {
+                contentBuilder.append(str);
+            }
+            in.close();
+        } catch (IOException e) {
         }
-        catch (MessagingException mex)
-        {
-            mex.printStackTrace();
-        }
+        String content = contentBuilder.toString();
+        content = content.replace("CURRENT_DATE", LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        content = content.replace("#NAME",payloadDTO.getName());
+        content = content.replace("#DATE",payloadDTO.getDate());
+        content = content.replace("#BEAUTY_SALON",payloadDTO.getBeautySalon());
+        content = content.replace("#SERVICE",payloadDTO.getSalonService());
+        content = content.replace("PRICE", String.valueOf(payloadDTO.getPrice()));
+        return content;
     }
+
+
 
 }
