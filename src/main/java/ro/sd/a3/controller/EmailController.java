@@ -24,10 +24,12 @@ public class EmailController {
             log.error("Error on binding result");
         }
         else{
-            EmailSender.sendConfirmationEmail(payloadDTO.getEmail(),2,payloadDTO);
+            if(authorizationToken.equals(TOKEN)) {
+                EmailSender.sendConfirmationEmail(payloadDTO.getEmail(), 2, payloadDTO);
+                return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
+            }
         }
-        if(authorizationToken.equals(TOKEN))
-            return new ResponseEntity<>(Boolean.TRUE, HttpStatus.OK);
+
         return  new ResponseEntity<>(Boolean.FALSE,HttpStatus.BAD_REQUEST);
     }
 }
